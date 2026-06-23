@@ -291,7 +291,7 @@
       .search-wrap input:focus {
         border-color: var(--gold);
         box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.2);
-        background: var(--cream);
+        background: var(--card-bg);
       }
       .search-icon {
         position: absolute;
