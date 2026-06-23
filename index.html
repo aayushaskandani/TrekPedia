@@ -36,7 +36,7 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <link rel="stylesheet" href="css/style.css?v=40" />
+    <link rel="stylesheet" href="css/style.css?v=41" />
   </head>
   <body class="dark">
     <script>
@@ -48,7 +48,7 @@
         }
         
         // Force refresh service worker and caches once to apply new trek images
-        if (localStorage.getItem('tp_force_refresh_v40_fix') !== 'true') {
+        if (localStorage.getItem('tp_force_refresh_v41_fix') !== 'true') {
           try {
             if ('serviceWorker' in navigator) {
               const regs = await navigator.serviceWorker.getRegistrations();
@@ -64,7 +64,7 @@
             }
             localStorage.clear();
             if (theme) localStorage.setItem('tp_theme', theme);
-            localStorage.setItem('tp_force_refresh_v40_fix', 'true');
+            localStorage.setItem('tp_force_refresh_v41_fix', 'true');
             window.location.reload();
           } catch (e) {
             console.error('Cache clearing failed:', e);
