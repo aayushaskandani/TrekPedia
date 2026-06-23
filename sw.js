@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trekpedia-cache-v39';
+const CACHE_NAME = 'trekpedia-cache-v40';
 const ASSETS = [
   './',
   './index.html',
