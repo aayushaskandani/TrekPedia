@@ -388,8 +388,8 @@
         box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.2);
       }
       .filter-bar select option {
-        background: #080913;
-        color: #f3f4f6;
+        background: var(--card-bg);
+        color: var(--text);
       }
       .filter-label {
         font-size: 0.7rem;
@@ -1076,7 +1076,7 @@
       .ai-header-title {
         font-family: "Playfair Display", serif;
         font-size: 1rem;
-        color: var(--cream);
+        color: var(--text);
       }
       .ai-header-title span {
         color: var(--gold);
@@ -1253,8 +1253,8 @@
 
       /* WEATHER WIDGET */
       .weather-widget {
-        background: rgba(18, 20, 36, 0.65);
-        border: 1px solid rgba(var(--accent-rgb), 0.15);
+        background: var(--card-bg);
+        border: 1px solid var(--border);
         border-radius: 12px;
         padding: 1rem 1.2rem;
         margin-bottom: 1.8rem;
@@ -1273,7 +1273,7 @@
         font-family: "Playfair Display", serif;
         font-size: 1.4rem;
         font-weight: 700;
-        color: var(--cream);
+        color: var(--text);
       }
       .weather-desc {
         font-size: 0.75rem;
@@ -1552,8 +1552,8 @@
 
       /* PRICING SECTION */
       .price-section {
-        background: rgba(18, 20, 36, 0.5);
-        border: 1px solid rgba(var(--accent-rgb), 0.15);
+        background: var(--card-bg);
+        border: 1px solid var(--border);
         border-radius: 12px;
         padding: 1.2rem 1.4rem;
         margin-bottom: 1.8rem;
@@ -1573,7 +1573,7 @@
         margin-bottom: 0.8rem;
       }
       .price-tier {
-        background: rgba(8, 9, 17, 0.4);
+        background: var(--page-bg);
         border: 1px solid var(--border);
         border-radius: 8px;
         padding: 0.8rem;
@@ -1600,7 +1600,7 @@
         font-family: "Playfair Display", serif;
         font-size: 1.25rem;
         font-weight: 700;
-        color: var(--cream);
+        color: var(--text);
         line-height: 1;
       }
       .price-tier-sub {
@@ -1612,7 +1612,7 @@
         font-size: 0.73rem;
         color: var(--mist);
         line-height: 1.6;
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        border-top: 1px solid var(--border);
         padding-top: 0.7rem;
         margin-top: 0.2rem;
       }
@@ -3651,6 +3651,7 @@
 
       /* Status Badge open status */
       .status-badge {
+        font-family: 'Inter', sans-serif !important;
         font-size: 0.65rem;
         font-weight: 600;
         text-transform: uppercase;
@@ -3660,26 +3661,51 @@
         border: 1px solid transparent;
         display: inline-flex;
         align-items: center;
+        justify-content: center;
+        line-height: 1.25 !important;
+        vertical-align: middle;
       }
-      .status-badge.open {
-        background: rgba(240, 113, 70, 0.1);
-        color: var(--gold);
-        border-color: rgba(240, 113, 70, 0.3);
+      /* Dark mode status badges */
+      body.dark .status-badge.open {
+        background: rgba(16, 185, 129, 0.08);
+        color: #10b981;
+        border-color: rgba(16, 185, 129, 0.3);
       }
-      .status-badge.snow {
+      body.dark .status-badge.snow {
         background: rgba(56, 189, 248, 0.1);
         color: #38bdf8;
         border-color: rgba(56, 189, 248, 0.3);
       }
-      .status-badge.possible {
+      body.dark .status-badge.possible {
         background: rgba(245, 158, 11, 0.1);
         color: #f59e0b;
         border-color: rgba(245, 158, 11, 0.3);
       }
-      .status-badge.off {
+      body.dark .status-badge.off {
         background: rgba(160, 160, 160, 0.1);
         color: #a0a0a0;
         border-color: rgba(160, 160, 160, 0.3);
+      }
+      /* Light mode status badges */
+      body:not(.dark) .status-badge.open {
+        background: rgba(4, 120, 87, 0.08);
+        color: #047857;
+        border-color: rgba(4, 120, 87, 0.25);
+      }
+      body:not(.dark) .status-badge.snow {
+        background: rgba(2, 132, 199, 0.08);
+        color: #0284c7;
+        border-color: rgba(2, 132, 199, 0.25);
+      }
+      body:not(.dark) .status-badge.possible {
+        background: rgba(180, 83, 9, 0.08);
+        color: #b45309;
+        border-color: rgba(180, 83, 9, 0.25);
+      }
+      body:not(.dark) .status-badge.off {
+        background: rgba(185, 28, 28, 0.08);
+        color: #b91c1c;
+        border-color: rgba(185, 28, 28, 0.25);
       }
 
       /* Community Journal View Styles */
