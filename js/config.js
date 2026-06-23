@@ -5,3 +5,4 @@ export const CONFIG = {
   EMAILJS_SERVICE_ID: "service_p9iadti", // Replace with your EmailJS Service ID
   EMAILJS_TEMPLATE_ID: "template_dpfu0fh", // Replace with your EmailJS Template ID
 };
+

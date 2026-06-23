@@ -1603,7 +1603,7 @@ if (!supabaseClient) {
         const gearHTML = t.gear
           .map(
             (g, i) =>
-              `<label class="gear-item ${done && done.gear && done.gear[i] ? "checked" : ""}"><input type="checkbox" ${done && done.gear && done.gear[i] ? "checked" : ""} onchange="saveGear('${t.id}',${i},this.checked)"> ${g}</label>`,
+              `<label class="gear-item ${done && done.gear && done.gear[i] ? "checked" : ""}"><input type="checkbox" ${done && done.gear && done.gear[i] ? "checked" : ""} onchange="saveGear('${t.id}',${i},this.checked); this.parentElement.classList.toggle('checked', this.checked)"> ${g}</label>`,
           )
           .join("");
         const elevPoints = buildElevProfile(t);
