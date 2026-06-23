@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trekpedia</title>
+    <meta name="description" content="Explore India's complete trek encyclopedia. View trail details, check live weather caching, track completed logs, and download packing lists for Hampta Pass, Chadar Trek, and more." />
+    <meta name="keywords" content="trekking, India treks, weather cache, packing checklist, user logs, Indiahikes, Trek The Himalayas" />
+    <meta name="author" content="Trekpedia Team" />
+    <link
+      rel="manifest"
+      href="data:application/json,{%22name%22:%22Trekpedia%22,%22short_name%22:%22Trekpedia%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%231A1208%22,%22theme_color%22:%22%23C9932A%22,%22icons%22:[{%22src%22:%22https://placehold.co/192x192/1A1208/C9932A?text=T%22,%22sizes%22:%22192x192%22,%22type%22:%22image/png%22}]}"
+    />
+    <meta name="theme-color" content="#C9932A" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Trekpedia" />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Leaflet.js Dependencies -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <link rel="stylesheet" href="css/style.css?v=39" />
+  </head>
+  <body class="dark">
+    <script>
+      (async function() {
+        const theme = localStorage.getItem('tp_theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (theme === 'light' || (!theme && !prefersDark)) {
+          document.body.classList.remove('dark');
+        }
+        
+        // Force refresh service worker and caches once to apply new trek images
+        if (localStorage.getItem('tp_force_refresh_v39_fix') !== 'true') {
+          try {
+            if ('serviceWorker' in navigator) {
+              const regs = await navigator.serviceWorker.getRegistrations();
+              for (const reg of regs) {
+                await reg.unregister();
+              }
+            }
+            if (typeof caches !== 'undefined') {
+              const keys = await caches.keys();
+              for (const key of keys) {
+                await caches.delete(key);
+              }
+            }
+            localStorage.clear();
+            if (theme) localStorage.setItem('tp_theme', theme);
+            localStorage.setItem('tp_force_refresh_v39_fix', 'true');
+            window.location.reload();
+          } catch (e) {
+            console.error('Cache clearing failed:', e);
+          }
+        }
+      })();
+    </script>
+    <div id="hero">
+      <!-- Particle canvas -->
+      <canvas
+        id="heroCanvas"
+        style="
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 0;
+        "
+      ></canvas>
+      <!-- Layered parallax mountains -->
+      <div
+        class="mtn-layer"
+        id="mtnFar"
+        style="
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 55%;
+          pointer-events: none;
+          z-index: 1;
+        "
+      >
+        <svg
+          viewBox="0 0 1400 300"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style="width: 100%; height: 100%"
+        >
+          <path
+            d="M0,300 L0,180 L80,90 L160,150 L260,40 L360,120 L450,60 L560,140 L650,30 L750,100 L840,50 L950,130 L1050,55 L1150,120 L1260,70 L1350,110 L1400,90 L1400,300 Z"
+            fill="#0d1f2d"
+          />
+        </svg>
+      </div>
+      <div
+        class="mtn-layer"
+        id="mtnMid"
+        style="
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 45%;
+          pointer-events: none;
+          z-index: 2; 
+        "
+      >
+        <svg
+          viewBox="0 0 1400 260"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style="width: 100%; height: 100%"
+        >
+          <path
+            d="M0,260 L0,200 L100,130 L200,170 L310,80 L420,150 L520,90 L620,160 L720,70 L830,140 L920,85 L1030,155 L1130,75 L1230,130 L1320,95 L1400,120 L1400,260 Z"
+            fill="#102318"
+          />
+        </svg>
+      </div>
+      <div
+        class="mtn-layer"
+        id="mtnNear"
+        style="
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 35%;
+          pointer-events: none;
+          z-index: 3;
+        "
+      >
+        <svg
+          viewBox="0 0 1400 220"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style="width: 100%; height: 100%"
+        >
+          <path
+            d="M0,220 L0,180 L120,110 L240,155 L360,95 L480,145 L580,100 L700,150 L810,90 L920,140 L1040,100 L1150,145 L1270,105 L1400,130 L1400,220 Z"
+            fill="#1a2e1a"
+          />
+          <!-- Snow caps -->
+          <path
+            d="M360,95 L380,105 L400,95 L420,108 L440,95 Z"
+            fill="rgba(255,255,255,0.15)"
+          />
+          <path
+            d="M810,90 L828,102 L848,90 L866,104 L884,90 Z"
+            fill="rgba(255,255,255,0.12)"
+          />
+          <path
+            d="M1040,100 L1058,112 L1076,100 L1094,113 L1112,100 Z"
+            fill="rgba(255,255,255,0.1)"
+          />
+        </svg>
+      </div>
+      <!-- Aurora glow -->
+      <div
+        id="aurora"
+        style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 45%;
+          pointer-events: none;
+          z-index: 1;
+          overflow: hidden;
+        "
+      >
+        <div
+          class="aurora-band"
+          style="
+            --c1: rgba(244, 63, 94, 0.15);
+            --c2: rgba(222, 94, 58, 0.12);
+            --delay: 0s;
+            --dur: 8s;
+          "
+        ></div>
+        <div
+          class="aurora-band"
+          style="
+            --c1: rgba(222, 94, 58, 0.15);
+            --c2: rgba(56, 189, 248, 0.12);
+            --delay: -3s;
+            --dur: 11s;
+          "
+        ></div>
+        <div
+          class="aurora-band"
+          style="
+            --c1: rgba(244, 63, 94, 0.12);
+            --c2: rgba(253, 186, 116, 0.10);
+            --delay: -6s;
+            --dur: 9s;
+          "
+        ></div>
+      </div>
+      <!-- Drifting clouds -->
+      <div
+        id="cloudLayer"
+        style="
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 2;
+          overflow: hidden;
+        "
+      >
+        <div
+          class="cloud"
+          style="top: 12%; --dur: 55s; --x: 110%; --w: 180px; --op: 0.06"
+        ></div>
+        <div
+          class="cloud"
+          style="
+            top: 22%;
+            --dur: 80s;
+            --x: 108%;
+            --w: 260px;
+            --op: 0.04;
+            animation-delay: -25s;
+          "
+        ></div>
+        <div
+          class="cloud"
+          style="
+            top: 8%;
+            --dur: 65s;
+            --x: 112%;
+            --w: 140px;
+            --op: 0.05;
+            animation-delay: -40s;
+          "
+        ></div>
+      </div>
+      <div class="hero-content" style="position: relative; z-index: 5">
+        <div class="hero-eyebrow">The Complete Trek Encyclopedia</div>
+        <h1 class="hero-title">Trek<span>pedia</span></h1>
+        <div class="hero-sub">
+          Every trail. Every summit. Every story — across India.
+        </div>
+        
+        <!-- Central Translucent Search Bar -->
+        <div class="hero-search-wrap" style="position: relative; max-width: 480px; margin: 0 auto 2.5rem; width: 90%; z-index: 6;">
+          <input
+            id="heroSearchInput"
+            type="text"
+            placeholder="Search trails, peaks, or regions..."
+            autocomplete="off"
+            style="
+              width: 100%;
+              background: rgba(18, 20, 22, 0.6);
+              border: 1px solid rgba(255, 255, 255, 0.15);
+              border-radius: 4px;
+              padding: 14px 20px 14px 46px;
+              color: #fff;
+              font-family: 'Inter', sans-serif;
+              font-size: 0.95rem;
+              outline: none;
+              backdrop-filter: blur(12px);
+              -webkit-backdrop-filter: blur(12px);
+              transition: all 0.3s ease;
+            "
+            oninput="doHeroSearch(this.value)"
+            onkeydown="if (event.key === 'Enter') handleHeroSearchEnter(this.value)"
+          />
+          <svg style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; opacity: 0.6; pointer-events: none; color: #fff;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <div id="heroSearchSuggestions" class="search-suggestions" style="display: none; top: 100%; left: 0; right: 0; position: absolute; max-height: 250px; flex-direction: column; text-align: left; background: rgba(18, 20, 22, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-top: none; z-index: 10;"></div>
+        </div>
+
+        <button class="explore-btn" onclick="enterApp()">
+          Begin Exploring
+        </button>
+      </div>
+      <div class="hero-stats" style="z-index: 5">
+        <div class="stat-item">
+          <div class="stat-num" id="heroTrekCount">210</div>
+          <div class="stat-label">Treks</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">1</div>
+          <div class="stat-label">Country</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">20,187 ft</div>
+          <div class="stat-label">Highest Peak</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="app">
+      <div class="app-header">
+        <div class="app-logo" onclick="goHome()">Trek<span>pedia</span></div>
+        
+        <!-- Global Fixed Navigation -->
+        <div class="app-nav-main" style="display: flex; gap: 1.5rem; margin-right: auto; margin-left: 2rem;">
+          <button class="nav-link-btn active" onclick="switchNavTab('exploration')" id="navTab-exploration">Exploration</button>
+          <button class="nav-link-btn" onclick="switchNavTab('journal')" id="navTab-journal">Journal</button>
+          <button class="nav-link-btn" onclick="switchNavTab('archives')" id="navTab-archives">Archives</button>
+          <button class="nav-link-btn" onclick="switchNavTab('maps')" id="navTab-maps">Maps</button>
+        </div>
+
+        <div class="search-wrap" id="headerSearchWrap">
+          <span class="search-icon"><svg style="width: 14px; height: 14px; vertical-align: middle;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Search treks…"
+            oninput="doSearch(this.value)"
+            autocomplete="off"
+          />
+          <div id="searchSuggestions" class="search-suggestions" style="display: none;"></div>
+        </div>
+
+        <div class="header-actions" style="margin-left: 1rem;">
+          <button class="icon-btn" onclick="toggleAI()" id="aiBtn">
+            Ask AI
+          </button>
+          <button class="icon-btn" onclick="surpriseMe()" id="surpriseBtn">
+            Surprise
+          </button>
+          <button class="icon-btn" onclick="toggleAccountModal()" id="accountBtn">
+            Login
+          </button>
+          <button
+            class="icon-btn theme-toggle-btn"
+            onclick="toggleDark()"
+            id="darkBtn"
+            aria-label="Toggle Theme"
+          >
+            <!-- Sun Icon -->
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 17px; height: 17px;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <!-- Moon Icon -->
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Subheader containing filters and country nav for exploration tab -->
+      <div class="app-subheader" id="explorationSubheader">
+        <div class="app-nav" id="countryNav"></div>
+      </div>
+      <div class="filter-bar" id="filterBar">
+        <span class="filter-label">Filter:</span>
+        <select id="diffFilter" onchange="applyFilters()">
+          <option value="">All difficulties</option>
+          <option value="easy">Easy</option>
+          <option value="moderate">Moderate</option>
+          <option value="hard">Hard</option>
+        </select>
+        <select id="durFilter" onchange="applyFilters()">
+          <option value="">All durations</option>
+          <option value="1">1 day</option>
+          <option value="short">2–5 days</option>
+          <option value="medium">6–14 days</option>
+          <option value="long">15+ days</option>
+        </select>
+        <select id="monthFilter" onchange="applyFilters()">
+          <option value="">Best month</option>
+          <option value="0">January</option>
+          <option value="1">February</option>
+          <option value="2">March</option>
+          <option value="3">April</option>
+          <option value="4">May</option>
+          <option value="5">June</option>
+          <option value="6">July</option>
+          <option value="7">August</option>
+          <option value="8">September</option>
+          <option value="9">October</option>
+          <option value="10">November</option>
+          <option value="11">December</option>
+        </select>
+        <select id="priceFilter" onchange="applyFilters()">
+          <option value="">Any budget</option>
+          <option value="low">Under 10K</option>
+          <option value="mid">10K – 30K</option>
+          <option value="high">30K+</option>
+        </select>
+        <select id="elevFilter" onchange="applyFilters()">
+          <option value="">Any elevation</option>
+          <option value="low">&lt; 3000m</option>
+          <option value="mid">3000–4500m</option>
+          <option value="high">&gt; 4500m</option>
+        </select>
+        <select id="regionFilter" onchange="applyFilters()">
+          <option value="">All regions</option>
+        </select>
+        <select id="sortFilter" onchange="applyFilters()">
+          <option value="difficulty">Sort by: Difficulty</option>
+          <option value="region">Sort by: Region (A-Z)</option>
+          <option value="duration">Sort by: Duration (Short to Long)</option>
+          <option value="elevation">Sort by: Elevation (High to Low)</option>
+          <option value="distance">Sort by: Distance (Short to Long)</option>
+        </select>
+      </div>
+      <div id="trek-view"></div>
+      <div id="trek-detail"></div>
+      <div id="saved-view"></div>
+      <div id="log-view"></div>
+      <div id="rec-view"></div>
+      <div id="compare-view"></div>
+      <div id="map-view">
+        <div id="map-container" style="width: 100%; height: 100%"></div>
+      </div>
+      <div id="gen-view"></div>
+      <div id="quiz-view"></div>
+      <div id="cal-view"></div>
+      <div id="journal-view" style="display: none; flex: 1; overflow-y: auto; padding: 2rem; flex-direction: column;"></div>
+      <div id="archives-view" style="display: none; flex: 1; overflow-y: auto; padding: 2rem; flex-direction: column;"></div>
+    </div>
+
+    <!-- compare bar -->
+    <div id="compare-panel">
+      <span
+        style="
+          color: var(--gold);
+          font-size: 0.78rem;
+          font-weight: 600;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          white-space: nowrap;
+        "
+        >Compare</span
+      >
+      <div class="compare-slots">
+        <div class="compare-slot" id="cslot0" onclick="removeCompare(0)">
+          + Pick a trek
+        </div>
+        <div class="compare-slot" id="cslot1" onclick="removeCompare(1)">
+          + Pick a trek
+        </div>
+      </div>
+      <button class="compare-go-btn" onclick="runCompare()">Compare →</button>
+      <button
+        class="icon-btn"
+        onclick="clearCompare()"
+        style="font-size: 0.72rem"
+      >
+        Clear
+      </button>
+    </div>
+
+    <!-- AI panel -->
+    <div id="ai-panel">
+      <div class="ai-header">
+        <div class="ai-header-title">Trek AI Assistant</div>
+        <button class="modal-close" onclick="toggleAI()">X</button>
+      </div>
+      <div class="ai-messages" id="aiMessages">
+        <div class="ai-msg bot">
+          Ask me anything about any trek — best season, difficulty, gear,
+          permits, or how to get there.
+        </div>
+      </div>
+      <div class="ai-input-row">
+        <input
+          id="aiInput"
+          type="text"
+          placeholder="Ask about any trek…"
+          onkeydown="if (event.key === 'Enter') sendAI();"
+        />
+        <button class="ai-send-btn" onclick="sendAI()">Send</button>
+      </div>
+    </div>
+
+    <!-- log modal -->
+    <div
+      id="logModal"
+      class="modal-bg"
+      style="display: none"
+      onclick="if (event.target === this) closeLog();"
+    >
+      <div class="modal">
+        <button class="modal-close" onclick="closeLog()">X</button>
+        <h3>Log this trek</h3>
+        <input type="date" id="logDate" placeholder="Date completed" />
+        <select id="logRating">
+          <option value="">Rate it…</option>
+          <option value="5">5 — Legendary</option>
+          <option value="4">4 — Excellent</option>
+          <option value="3">3 — Good</option>
+          <option value="2">2 — Mixed feelings</option>
+          <option value="1">1 — Brutal</option>
+        </select>
+        <textarea
+          id="logNote"
+          rows="3"
+          placeholder="Notes (optional)…"
+        ></textarea>
+        <button class="modal-btn" onclick="saveLog()">Save to log</button>
+      </div>
+    </div>
+    <!-- Account / Auth Modal -->
+    <div id="accountModal" class="modal-bg" style="display: none;" onclick="if (event.target === this) toggleAccountModal();">
+      <div class="modal auth-modal" style="max-width:380px;">
+        <button class="modal-close" onclick="toggleAccountModal()">X</button>
+        <div id="authView">
+          <h3 id="authTitle">Log In</h3>
+          <form id="authForm" onsubmit="handleAuth(event)">
+            <input type="email" id="authEmail" placeholder="Email address" required />
+            <input type="password" id="authPassword" placeholder="Password" required />
+            <button type="submit" class="modal-btn" style="width: 100%; margin-bottom: 0.8rem;" id="authSubmitBtn">Log In</button>
+          </form>
+          <button class="modal-btn" onclick="handleGoogleLogin()" style="width: 100%; background: #fff; color: #0f172a; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1rem;">
+            <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84c-.21 1.12-.84 2.07-1.79 2.7v2.24h2.9c1.7-1.57 2.69-3.88 2.69-6.57zm-8.64 8.8c2.43 0 4.47-.8 5.96-2.18l-2.9-2.24c-.8.54-1.84.87-3.06.87-2.35 0-4.34-1.58-5.05-3.71H.95v2.3C2.43 15.98 5.48 18 9 18z" fill="#33a852"/><path d="M3.95 10.74c-.18-.54-.28-1.12-.28-1.74s.1-1.2.28-1.74V4.96H.95C.35 6.17 0 7.55 0 9s.35 2.83.95 4.04l3-2.3z" fill="#fabb05"/><path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.8 11.43 0 9 0 5.48 0 2.43 2.02.95 4.96l3 2.3c.71-2.13 2.7-3.71 5.05-3.71z" fill="#ea4335"/></svg>
+            Continue with Google
+          </button>
+          <div style="font-size: 0.78rem; text-align: center; color: var(--mist);">
+            <span id="authSwitchText">Don't have an account?</span> 
+            <a href="#" onclick="switchAuthView(event)" id="authSwitchLink" style="color: var(--gold); text-decoration: none; font-weight: 600;">Sign Up</a>
+          </div>
+        </div>
+        <div id="profileView" style="display: none;">
+          <h3>Your Profile</h3>
+          <div style="font-size: 0.88rem; color: var(--text); margin-bottom: 0.5rem; word-break: break-all;">Email: <strong id="profileEmail">user@example.com</strong></div>
+          <div style="font-size: 0.75rem; color: var(--mist); margin-bottom: 1.5rem;">Sync Status: <span style="color: #10b981; font-weight: 600;">Connected</span></div>
+          <button class="modal-btn" onclick="handleLogout()" style="width: 100%; background: var(--rust); color: #fff;">Log Out</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="plane-overlay">
+      <div class="dest-flash" id="destFlash"></div>
+      <div id="plane-el"></div>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="module" src="js/main.js?v=39"></script>
+  </body>
+</html>

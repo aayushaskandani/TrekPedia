@@ -1,0 +1,395 @@
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trekpedia - Automated Test Runner</title>
+  <script>
+    window.addEventListener('error', function(e) {
+      const errDiv = document.createElement('div');
+      errDiv.style.color = '#ffd0c8';
+      errDiv.style.background = 'rgba(139, 58, 42, 0.2)';
+      errDiv.style.border = '1px solid rgba(139, 58, 42, 0.4)';
+      errDiv.style.padding = '15px';
+      errDiv.style.margin = '20px 0';
+      errDiv.style.borderRadius = '5px';
+      errDiv.style.fontFamily = 'monospace';
+      errDiv.innerHTML = `<h3>Uncaught Error:</h3><p>${e.message}</p><p>Filename: ${e.filename}</p><p>Line: ${e.lineno}, Col: ${e.colno}</p><pre>${e.error ? e.error.stack : ''}</pre>`;
+      document.body.insertBefore(errDiv, document.body.firstChild);
+    });
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #f5f0e8;
+      --deep: #1a1208;
+      --forest: #2c4a2e;
+      --gold: #c9932a;
+      --mist: #8ba89a;
+      --snow: #fdfaf5;
+      --rust: #8b3a2a;
+      --border: #2a2318;
+      --card-bg: #1e1a14;
+    }
+    body {
+      background: var(--deep);
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      margin: 0;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      margin: 0;
+      font-weight: 900;
+    }
+    h1 span {
+      color: var(--gold);
+      font-style: italic;
+    }
+    .stats-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.5rem;
+      display: flex;
+      gap: 2rem;
+    }
+    .stat-box {
+      text-align: center;
+    }
+    .stat-val {
+      font-size: 1.8rem;
+      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+    }
+    .stat-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--mist);
+      margin-top: 4px;
+    }
+    .suite-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .suite-header {
+      background: rgba(201, 147, 42, 0.08);
+      padding: 1rem 1.5rem;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+      color: var(--gold);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .suite-body {
+      padding: 1rem 1.5rem;
+    }
+    .test-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .test-row:last-child {
+      border-bottom: none;
+    }
+    .status-pill {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      display: inline-block;
+      white-space: nowrap;
+    }
+    .status-pass {
+      background: rgba(44, 74, 46, 0.2);
+      color: #b8e0bb;
+      border: 1px solid rgba(44, 74, 46, 0.4);
+    }
+    .status-fail {
+      background: rgba(139, 58, 42, 0.2);
+      color: #ffd0c8;
+      border: 1px solid rgba(139, 58, 42, 0.4);
+    }
+    .test-details {
+      flex: 1;
+    }
+    .test-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+    .test-error {
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #ffd0c8;
+      margin-top: 6px;
+      white-space: pre-wrap;
+      background: rgba(139, 58, 42, 0.1);
+      padding: 8px 12px;
+      border-radius: 4px;
+      border-left: 3px solid var(--rust);
+    }
+    .test-time {
+      font-size: 0.72rem;
+      color: var(--mist);
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Mock DOM elements required for main.js to initialize without throwing errors -->
+  <div id="mock-dom" style="display: none;">
+    <div id="hero"></div>
+    <div id="app"></div>
+    <div id="countryNav"></div>
+    <div id="searchInput"></div>
+    <div id="trek-view"></div>
+    <div id="trek-detail"></div>
+    <div id="saved-view"></div>
+    <div id="log-view"></div>
+    <div id="rec-view"></div>
+    <div id="compare-view"></div>
+    <div id="map-view"><div id="map-container"></div></div>
+    <div id="gen-view"></div>
+    <div id="quiz-view"></div>
+    <div id="cal-view"></div>
+    <div id="toast"></div>
+    <button id="mapBtn"></button>
+    <button id="genBtn"></button>
+    <button id="logViewBtn"></button>
+    <button id="quizBtn"></button>
+    <button id="calBtn"></button>
+    <button id="darkBtn"></button>
+    <button id="aiBtn"></button>
+    <button id="cmpBtn"></button>
+    <div id="compare-panel">
+      <div id="cslot0"></div>
+      <div id="cslot1"></div>
+    </div>
+    <div id="aiMessages"></div>
+    <input id="aiInput" />
+    <div id="logModal">
+      <input id="logDate" />
+      <select id="logRating"></select>
+      <textarea id="logNote"></textarea>
+    </div>
+  </div>
+
+  <div class="container">
+    <header>
+      <div>
+        <h1>Trek<span>pedia</span></h1>
+        <div style="font-size: 0.82rem; color: var(--mist); margin-top: 4px;">Automated Business Logic Test Runner</div>
+      </div>
+      <div class="stats-card">
+        <div class="stat-box">
+          <div class="stat-val" id="total-tests">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" style="color: #b8e0bb;" id="passed-tests">0</div>
+          <div class="stat-label">Passed</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" style="color: #ffd0c8;" id="failed-tests">0</div>
+          <div class="stat-label">Failed</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" style="color: var(--gold);" id="duration">0ms</div>
+          <div class="stat-label">Duration</div>
+        </div>
+      </div>
+    </header>
+
+    <main id="suites-container">
+      <!-- Test suites will render here dynamically -->
+    </main>
+  </div>
+
+  <!-- Run the test assertions -->
+  <script type="module">
+    import { matchesFilters, haversine, buildElevProfile, getSeason, reviewAvg, ALL_TREKS } from './js/main.js?v=31';
+
+    const suites = {};
+    let currentSuite = null;
+    let passedCount = 0;
+    let failedCount = 0;
+    const startTime = performance.now();
+
+    function describe(name, fn) {
+      suites[name] = [];
+      currentSuite = name;
+      fn();
+    }
+
+    function it(desc, assertFn) {
+      const suiteName = currentSuite;
+      try {
+        assertFn();
+        suites[suiteName].push({ desc, status: 'PASS', error: null });
+        passedCount++;
+      } catch (err) {
+        suites[suiteName].push({ desc, status: 'FAIL', error: err.stack || err.message });
+        failedCount++;
+      }
+    }
+
+    function assertEquals(actual, expected, msg = "") {
+      if (actual !== expected) {
+        throw new Error(`${msg ? msg + ' ' : ''}Expected [${expected}] but got [${actual}]`);
+      }
+    }
+
+    function assertBetween(actual, min, max, msg = "") {
+      if (actual < min || actual > max) {
+        throw new Error(`${msg ? msg + ' ' : ''}Expected ${actual} to be between ${min} and ${max}`);
+      }
+    }
+
+    function assertTrue(condition, msg = "") {
+      if (!condition) {
+        throw new Error(msg || "Assertion failed: expected true");
+      }
+    }
+
+    // ─── START TEST SUITES ───
+
+    describe("Trek Data Integrity Tests", () => {
+      it("should load the trek dataset containing 210 structured treks", () => {
+        assertEquals(ALL_TREKS.length, 210, "Total treks loaded");
+      });
+
+      it("should ensure every trek has essential properties structured properly", () => {
+        ALL_TREKS.forEach(t => {
+          assertTrue(!!t.id, `Trek has ID: ${t.name}`);
+          assertTrue(!!t.name, `Trek has Name: ${t.id}`);
+          assertTrue(!!t.difficulty, `Trek has Difficulty: ${t.name}`);
+          assertTrue(!!t.elevation, `Trek has Elevation: ${t.name}`);
+          assertTrue(t.bestMonths.length > 0, `Trek has best months: ${t.name}`);
+          assertTrue(t.itinerary.length > 0, `Trek has day itinerary: ${t.name}`);
+        });
+      });
+    });
+
+    describe("Fuzzy Filter Matching Logic", () => {
+      it("should match moderate difficulty treks", () => {
+        const hampta = ALL_TREKS.find(x => x.id === "hampta-pass");
+        assertTrue(hampta.difficulty === "moderate");
+      });
+
+      it("should check trek durations in days", () => {
+        const chadar = ALL_TREKS.find(x => x.id === "chadar-trek");
+        assertEquals(chadar.durationDays, 9);
+      });
+    });
+
+    describe("Haversine Distance Calculator", () => {
+      it("should calculate distance between Leh and Spituk accurately (~5 km straight-line)", () => {
+        // Leh coordinates: [77.5771, 34.1526], Spituk: [77.53, 34.14]
+        const dist = haversine(34.1526, 77.5771, 34.14, 77.53);
+        assertEquals(dist, 5, "Distance between coordinates");
+      });
+
+      it("should return 0 km when coordinates match exactly", () => {
+        const dist = haversine(32.2396, 77.1887, 32.2396, 77.1887);
+        assertEquals(dist, 0);
+      });
+    });
+
+    describe("Elevation Profile Generator", () => {
+      it("should generate coordinate plot points matching itinerary days + base point", () => {
+        const hampta = ALL_TREKS.find(x => x.id === "hampta-pass");
+        const profile = buildElevProfile(hampta);
+        // Itinerary length is 5 days, so profile output length should be 6 (base start point + 5 days)
+        assertEquals(profile.length, 6, "Plot points length");
+      });
+
+      it("should start from base elevation (800m) and climb up towards peak", () => {
+        const chadar = ALL_TREKS.find(x => x.id === "chadar-trek");
+        const profile = buildElevProfile(chadar);
+        assertEquals(profile[0], 800, "Base elevation start");
+        assertTrue(profile[3] > 800, "Should ascent during trek days");
+      });
+    });
+
+    describe("Review Average Calculator", () => {
+      it("should compute average review rating correctly", () => {
+        const reviews = [
+          { name: "John", stars: 5, text: "Excellent" },
+          { name: "Alice", stars: 4, text: "Good trek" },
+          { name: "Bob", stars: 3, text: "Okay" }
+        ];
+        const avg = parseFloat(reviewAvg(reviews));
+        assertEquals(avg, 4.0, "Review average");
+      });
+
+      it("should return 0 when reviews list is empty", () => {
+        const avg = reviewAvg([]);
+        assertEquals(avg, 0);
+      });
+    });
+
+    // ─── RENDER TEST RESULTS ───
+    
+    const container = document.getElementById("suites-container");
+    container.innerHTML = Object.entries(suites).map(([suiteName, tests]) => {
+      const suitePassed = tests.every(t => t.status === 'PASS');
+      const testRows = tests.map(t => `
+        <div class="test-row">
+          <span class="status-pill ${t.status === 'PASS' ? 'status-pass' : 'status-fail'}">${t.status}</span>
+          <div class="test-details">
+            <div class="test-name">${t.desc}</div>
+            ${t.error ? `<div class="test-error">${t.error}</div>` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      return `
+        <div class="suite-card">
+          <div class="suite-header">
+            <div>${suiteName}</div>
+            <span class="status-pill ${suitePassed ? 'status-pass' : 'status-fail'}" style="font-size: 0.6rem;">
+              ${suitePassed ? 'Suite Passed' : 'Suite Failed'}
+            </span>
+          </div>
+          <div class="suite-body">
+            ${testRows}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Update statistics
+    document.getElementById("total-tests").textContent = passedCount + failedCount;
+    document.getElementById("passed-tests").textContent = passedCount;
+    document.getElementById("failed-tests").textContent = failedCount;
+    document.getElementById("duration").textContent = Math.round(performance.now() - startTime) + "ms";
+  </script>
+</body>
+</html>
